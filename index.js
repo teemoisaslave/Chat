@@ -1,3 +1,8 @@
+//mega 
+//import {createRequire} from "module";
+//import {File, Storage} from "megajs";
+//import * as url from "url";
+
 const express = require("express");
 const fs = require("fs");
 const http = require("http");
@@ -13,6 +18,12 @@ app.use(
   bodyParser.urlencoded({
     extended: true,
   }),
+);
+
+app.use("/", express.static(path.join(__dirname, "public")));
+app.use(
+  "/io",
+  express.static(path.join(__dirname, "node_modules/socket.io/client-dist")),
 );
 app.use(express.static("public"));
 //app.use("/", express.static(path.join(__dirname, "public")));
