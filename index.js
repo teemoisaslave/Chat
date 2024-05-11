@@ -1,17 +1,14 @@
-//mega 
-//import {createRequire} from "module";
-//import {File, Storage} from "megajs";
-//import * as url from "url";
-
-const express = require("express");
 const fs = require("fs");
+const express = require("express");
 const http = require("http");
-const path = require("path");
 const app = express();
-const mysql = require("mysql2");
-const conf = require("./config.js");
-const connection = mysql.createConnection(conf);
+const path = require("path");
 const bodyParser = require("body-parser");
+const mysql = require("mysql2");
+const confi = require("./config.js");
+const connection = mysql.createConnection(confi);
+const { Server } = require("socket.io");
+const conf = JSON.parse(fs.readFileSync("./conf.json"));
 
 app.use(bodyParser.json());
 app.use(
@@ -19,14 +16,10 @@ app.use(
     extended: true,
   }),
 );
-
-app.use("/", express.static(path.join(__dirname, "public")));
-app.use(
-  "/io",
-  express.static(path.join(__dirname, "node_modules/socket.io/client-dist")),
-);
 app.use(express.static("public"));
-//app.use("/", express.static(path.join(__dirname, "public")));
+const server = http.createServer(app);
+
+const io = new Server(server);
 const executeQuery = (sql) => {
   return new Promise((resolve, reject) => {
     connection.query(sql, function (err, result) {
@@ -38,7 +31,6 @@ const executeQuery = (sql) => {
     });
   });
 };
-
 const checkLogin = (us, pw, t) => {
   return new Promise((resolve, reject) => {
     if (t === "a") {
@@ -94,6 +86,7 @@ app.post("/login_u", (req, res) => {
 app.post("/login", (req, res) => {
   let username = req.body.username;
   let password = req.body.password;
+  let sql = executeQuery(sql);
   let users = `CREATE TABLE IF NOT EXISTS users(
     id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
     username VARCHAR(255) NOT NULL,
@@ -114,8 +107,22 @@ app.post("/login", (req, res) => {
     }
   });
 });
+app.post("/new_c", (req, res) => {
+  let username = req.body.username;
+  let date = new Date().toLocaleString();
+  console.log("socket connected: " + req.body.username);
+  io.emit("chat", date + ".. " + "new client: " + req.body.username);
+  res.send("ok");
+});
+app.post("/new_m", (req, res) => {
+  let message = req.body.message;
+  let user = req.body.username;
+  let date = new Date().toLocaleString();
+  console.log("message: " + message);
+  io.emit("chat", date + ".. " + user + ".. " + message);
+  res.send("ok");
+});
 
-const server = http.createServer(app);
-server.listen(80, () => {
-  console.log("--server running");
+server.listen(conf.port, () => {
+  console.log("server running on port: " + conf.port);
 });
