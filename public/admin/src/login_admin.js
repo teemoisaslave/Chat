@@ -22,11 +22,11 @@ visibility_off
 
 login.onclick = () => {
   console.log(username.value, password.value);
-  Login(username.value, password.value).then((response) => {
+  Login_u(username.value, password.value).then((response) => {
     console.log(response);
     if (response.result === "ok") {
       localStorage.setItem("acesso", true);
-      window.location = "./admin.html";
+      window.location = "./utente.html";
     } else {
       window.alert("Errore nel Login");
     }
