@@ -28,3 +28,26 @@ export const Login_u = (user, pass) => {
       .catch((err) => reject(err));
   });
 };
+export const New_m = (u, m) => {
+  return new Promise((resolve, reject) => {
+    fetch("/new_m", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: u,
+        message: m,
+      }),
+    });
+  });
+};
+export const New_u = (u, m) => {
+  return new Promise((resolve, reject) => {
+    fetch("/new_m", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: u,
+      }),
+    });
+  });
+};

@@ -1,3 +1,4 @@
+import { New_m, New_u } from "../../connection.js";
 const input = document.getElementById("input");
 const button = document.getElementById("sendButton");
 const chat = document.getElementById("chat");
@@ -17,25 +18,12 @@ input.onkeydown = (event) => {
 };
 
 s1.onclick = () => {
-  fetch("/new_c", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      username: i1.value,
-    }),
-  });
+  New_u(i1.value);
   i1.style.display = "none";
   s1.style.display = "none";
 };
 button.onclick = () => {
-  fetch("/new_m", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      username: i1.value,
-      message: input.value,
-    }),
-  });
+  New_m(i1.value, input.value);
   i1.style.display = "none";
   s1.style.display = "none";
 };

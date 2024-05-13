@@ -1,12 +1,3 @@
-//import {createRequire} from "module";
-//import {fileURLToPath} from 'url';
-//import {dirname} from 'path';
-//import {megaFunction} from "./server/mega.js";
-//import multer from 'multer';
-
-
-//const __filename = fileURLToPath(import.meta.url);
-//const __dirname = dirname(__filename);
 const fs = require("fs");
 const express = require("express");
 const http = require("http");
@@ -132,39 +123,9 @@ app.post("/new_m", (req, res) => {
   res.send("ok");
 });
 
-//mega
-const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: {
-        fileSize: 500 * 1024 * 1024,
-    },
-    allowUploadBuffering: true, 
-});
-app.post('/upload', upload.single('file'), async (req, res) => {
-    try {
-        const file = req.file; 
-        const fileName = path.basename(file.originalname); 
-        const link = await megaFunction.uploadFileToStorage(fileName, file.buffer);
-        console.log('File caricato con successo. Path: ', fileName);
-        res.status(200).json({"Result": fileName, "link": link});
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Errore del server');
-    }
-});
+//mega da sistemare
 
-app.post('/download', async (req, res) => {
-    const link = req.body.mega;
-    const name = req.body.name;
-    try {
-        const {stream, fileName} = await megaFunction.downloadFileFromLink(link); 
-        res.setHeader('Content-Disposition', 'attachment; filename=' + fileName);
-        stream.pipe(res); 
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Errore del server');
-    }
-});
+
 
 server.listen(conf.port, () => {
   console.log("server running on port: " + conf.port);
