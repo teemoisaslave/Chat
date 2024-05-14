@@ -1,14 +1,37 @@
-const fs = require("fs");
+const require = createRequire(import.meta.url);
 const express = require("express");
 const http = require("http");
-const app = express();
 const path = require("path");
 const bodyParser = require("body-parser");
-const mysql = require("mysql2");
-const confi = require("./config.js");
-const connection = mysql.createConnection(confi);
 const { Server } = require("socket.io");
-const conf = JSON.parse(fs.readFileSync("./conf.json"));
+const { Storage } = require("megajs");
+const { File } = require("megajs");
+const url = require("url");
+const fs = require("fs");
+const mysql = require("mysql2");
+import { createRequire } from "module";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+import { confDB } from "./config.js";
+import { megaFunction } from "./server/mega.js";
+import multer from "multer";
+import { Socket } from "dgram";
+import { SocketAddress } from "net";
+const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+//DB connection
+const { exec } = require("child_process");
+const connection = mysql.createConnection(confDB);
+
+app.use("/", express.static(path.join(__dirname, "public")));
+app.use(bodyParser.json());
+app.use(
+  bodyParser.urlencoded({
+    extended: true,
+  }),
+);
 
 app.use(bodyParser.json());
 app.use(
@@ -18,7 +41,9 @@ app.use(
 );
 app.use(express.static("public"));
 const server = http.createServer(app);
-
+server.listen(80, () => {
+  console.log("Server listening on port 80");
+});
 const io = new Server(server);
 const executeQuery = (sql) => {
   return new Promise((resolve, reject) => {
@@ -86,7 +111,6 @@ app.post("/login_u", (req, res) => {
 app.post("/login", (req, res) => {
   let username = req.body.username;
   let password = req.body.password;
-  let sql = executeQuery(sql);
   let users = `CREATE TABLE IF NOT EXISTS users(
     id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
     username VARCHAR(255) NOT NULL,
@@ -108,10 +132,9 @@ app.post("/login", (req, res) => {
   });
 });
 app.post("/new_c", (req, res) => {
-  let username = req.body.username;
   let date = new Date().toLocaleString();
   console.log("socket connected: " + req.body.username);
-  io.emit("chat", date + ".. " + "new client: " + req.body.username);
+  io.emit("chat", "new client: " + req.body.username + "\n" + date);
   res.send("ok");
 });
 app.post("/new_m", (req, res) => {
@@ -119,14 +142,25 @@ app.post("/new_m", (req, res) => {
   let user = req.body.username;
   let date = new Date().toLocaleString();
   console.log("message: " + message);
-  io.emit("chat", date + ".. " + user + ".. " + message);
+  io.emit("chat", req.body.username + ":" + "\n" + message + "\n" + date);
   res.send("ok");
 });
-
-//mega da sistemare
-
-
-
-server.listen(conf.port, () => {
-  console.log("server running on port: " + conf.port);
+app.post("/Regis_u", (req, res) => {
+  let username = req.body.username;
+  let password = req.body.password;
+  let users = `CREATE TABLE IF NOT EXISTS users(
+    id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    username VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL)`;
+  executeQuery(users);
+  let admins = `CREATE TABLE IF NOT EXISTS adms(
+      id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+      username VARCHAR(255) NOT NULL,
+      password VARCHAR(255) NOT NULL)`;
+  executeQuery(admins);
+  let sql = `INSERT INTO adms(username, password) VALUES ('${username}', '${password}')`;
+  executeQuery(sql).then((result) => {
+    res.json({ result: "ok" });
+  });
 });
+

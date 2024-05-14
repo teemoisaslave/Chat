@@ -11,7 +11,8 @@
   </head>
   <body>
     <br />
-    <input id="i1" type="text" class="form-control" />
+    <p id="messaggio">username:</p>
+    <input id="i1" type="text" />
     <button id="s1" class="btn btn-primary">Send</button>
     <div class="container">
       <ul id="chat" class="list-group"></ul>
@@ -21,7 +22,12 @@
       <button id="sendButton" type="button" class="btn btn-success">
         Send
       </button>
+      <ul id="rooms" class="list-group"></ul>
+      <button id="new_chat" type="button" class="btn btn-primary">
+        new_chat
+      </button>
     </div>
     <script type="module" src="./src/index.js"></script>
+    <script type="module" src="./src/mega.js"></script>
   </body>
 </html>

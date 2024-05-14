@@ -1,8 +1,8 @@
-import { Login } from "../../connection.js";
+import { Regis_u } from "../../connection.js";
 
 const username = document.getElementById("username");
 const password = document.getElementById("password");
-const login = document.getElementById("loginB");
+const Regis = document.getElementById("RegisB");
 const ShowPassword = document.getElementById("ShowPassword");
 
 ShowPassword.onclick = () => {
@@ -20,13 +20,13 @@ visibility_off
   }
 };
 
-login.onclick = () => {
+Regis.onclick = () => {
   console.log(username.value, password.value);
-  Login(username.value, password.value).then((response) => {
+  Regis_u(username.value, password.value).then((response) => {
     console.log(response);
     if (response.result === "ok") {
       localStorage.setItem("acesso", true);
-      window.location = "./admin.html";
+      window.location = "./utente.html";
     } else {
       window.alert("Errore nel Login");
     }
