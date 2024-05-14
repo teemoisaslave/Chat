@@ -41,7 +41,8 @@ socket.on("chat", (message) => {
   messages.push(message);
   render();
 });
-new_chat.onclick = () => {};
+new_chat.onclick = () => {
+};
 const render = () => {
   let html = "";
   messages.forEach((message) => {

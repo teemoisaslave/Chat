@@ -21,4 +21,3 @@ const uploadFile = async (input) => {
 };
 const input = document.getElementById("input") //input type="file"
 //invia.onclick=>
-uploadFile(input)
