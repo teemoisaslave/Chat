@@ -1,5 +1,5 @@
 import { Login_u } from "../../connection.js";
-
+localStorage.setItem
 const username = document.getElementById("username");
 const password = document.getElementById("password");
 const login = document.getElementById("loginB");

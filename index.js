@@ -8,6 +8,7 @@ const io = new Server(server);
 const path = require("path");
 const bodyParser = require("body-parser");
 let chats = [];
+let users = [];
 const { Storage } = require("megajs");
 const { File } = require("megajs");
 const url = require("url");
@@ -48,10 +49,11 @@ server.listen(80, () => {
 });
 io.on("connection", (socket) => {
   console.log("a user connected");
-
   // Unisciti a una room specifica
   socket.on("join room", (room) => {
     socket.join(room);
+    users.push(username);
+    console.log(users);
     console.log(`User joined room: ${room}`);
     // Se la chat non esiste ancora, la creiamo
     if (!chats.find((chat) => chat.chat === room)) {
@@ -69,17 +71,23 @@ io.on("connection", (socket) => {
         ora: timestamp,
         messaggio: message,
       });
+      console.log(users);
     }
-
-    console.log(chats);
   });
 
   socket.on("disconnect", () => {
+    for (let i = 0; i < users.length; i++) {
+      console.log(socket.id, users[i]);
+      if (socket.id === users[i]) {
+        users.splice(i, 1);
+      }
+    }
     console.log("user disconnected");
   });
 
   socket.on("message", (data) => {});
 });
+
 const executeQuery = (sql) => {
   return new Promise((resolve, reject) => {
     connection.query(sql, function (err, result) {
@@ -123,11 +131,11 @@ const checkLogin = (us, pw, t) => {
 app.post("/login_u", (req, res) => {
   let username = req.body.username;
   let password = req.body.password;
-  let users = `CREATE TABLE IF NOT EXISTS users(
+  let user = `CREATE TABLE IF NOT EXISTS users(
     id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL)`;
-  executeQuery(users);
+  executeQuery(user);
   let admins = `CREATE TABLE IF NOT EXISTS adms(
       id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
       username VARCHAR(255) NOT NULL,
@@ -139,7 +147,7 @@ app.post("/login_u", (req, res) => {
       res.status(401);
       res.json({ result: "Unauthorized" });
     } else {
-      res.json({ result: "ok" });
+      res.json({ result: "ok", chats: chats, users: users });
     }
   });
 });

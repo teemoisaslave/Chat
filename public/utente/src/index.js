@@ -1,5 +1,4 @@
 const socket = io();
-
 const form = document.getElementById("form");
 const input = document.getElementById("input");
 const register = document.getElementById("register");
@@ -7,8 +6,20 @@ const roomInput = document.getElementById("room");
 const usernameInput = document.getElementById("username"); // Aggiungi un campo di input per l'username
 const messages = document.getElementById("messages");
 const myModal = new bootstrap.Modal("#modalAccedi");
+const roo = document.getElementById("rooms");
 myModal.show();
 let room = "";
+let rooms = ["main", "general", "fouie chat"];
+let template = `<li>%room</li>`;
+let html = "";
+html += `<ul>`;
+for (let i = 0; i < rooms.length; i++) {
+  html += template.replace("%room", rooms[i]);
+  console.log(html);
+}
+html += `</ul>`;
+console.log(html);
+roo.innerHTML = html;
 let username = "";
 register.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -18,6 +29,13 @@ register.addEventListener("submit", (e) => {
     myModal.hide();
   }
 });
+
+//input_img.onclick = () => {
+//uploadFile(img).then((jason) => {
+// console.log(jason);
+// });
+//};
+
 form.addEventListener("submit", (e) => {
   e.preventDefault();
   if (input.value) {
