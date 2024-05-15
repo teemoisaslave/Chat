@@ -1,54 +1,58 @@
-import { New_m, New_u } from "../../connection.js";
-const input = document.getElementById("input");
-const button = document.getElementById("sendButton");
-const chat = document.getElementById("chat");
-const i1 = document.getElementById("i1");
-const s1 = document.getElementById("s1");
-const messa = document.getElementById("messaggio");
-const new_chat = document.getElementById("new_chat");
-const rooms = document.getElementById("rooms");
-input.style.display = "none";
-button.style.display = "none";
-new_chat.style.display = "none";
-const template = '<li class="list-group-item">%MESSAGE</li>';
-const temp1 = '<li class="list-group-item">%ROOM</li>';
-const messages = [];
-
 const socket = io();
 
-input.onkeydown = (event) => {
-  if (event.keyCode === 13) {
-    event.preventDefault();
-    button.click();
+const form = document.getElementById("form");
+const input = document.getElementById("input");
+const register = document.getElementById("register");
+const roomInput = document.getElementById("room");
+const usernameInput = document.getElementById("username"); // Aggiungi un campo di input per l'username
+const messages = document.getElementById("messages");
+const myModal = new bootstrap.Modal("#modalAccedi");
+myModal.show();
+let room = "";
+let username = "";
+register.addEventListener("submit", (e) => {
+  e.preventDefault();
+  if (usernameInput.value && roomInput.value) {
+    room = roomInput.value;
+    username = usernameInput.value;
+    myModal.hide();
   }
-};
-
-s1.onclick = () => {
-  New_u(i1.value);
-  i1.style.display = "none";
-  s1.style.display = "none";
-  messa.style.display = "none";
-  input.style.display = "block";
-  button.style.display = "block";
-  new_chat.style.display = "block";
-};
-button.onclick = () => {
-  New_m(i1.value, input.value);
-};
-new_chat;
-socket.on("chat", (message) => {
-  console.log(message);
-  messages.push(message);
-  render();
 });
-new_chat.onclick = () => {
-};
-const render = () => {
-  let html = "";
-  messages.forEach((message) => {
-    const row = template.replace("%MESSAGE", message);
-    html += row;
-  });
-  chat.innerHTML = html;
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  if (input.value) {
+    const timestamp = new Date().toLocaleString("it-IT", {
+      year: "2-digit",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    socket.emit("join room", room);
+    socket.emit("chat message", room, {
+      username,
+      message: input.value,
+      timestamp,
+    }); // Invia l'username e il messaggio
+    input.value = "";
+  }
+});
+
+let messageData = []; // Array per salvare i dati dei messaggi
+
+socket.on("chat message", function (message) {
+  messageData.push(message); // Aggiungi il messaggio all'array
+  displayMessages(); // Visualizza i messaggi
+});
+
+function displayMessages() {
+  messages.innerHTML = messageData
+    .map(({ username, message, timestamp }) => {
+      const align = username === usernameInput.value ? "me" : "others";
+      return `<li class="${align}">[${timestamp}] ${username}: ${message}</li>`;
+    })
+    .join("");
+
+  // Scorri fino all'ultimo messaggio
   window.scrollTo(0, document.body.scrollHeight);
-};
+}

@@ -1,9 +1,13 @@
 const require = createRequire(import.meta.url);
 const express = require("express");
+const app = express();
 const http = require("http");
+const server = http.createServer(app);
+const { Server } = require("socket.io");
+const io = new Server(server);
 const path = require("path");
 const bodyParser = require("body-parser");
-const { Server } = require("socket.io");
+let chats = [];
 const { Storage } = require("megajs");
 const { File } = require("megajs");
 const url = require("url");
@@ -15,9 +19,8 @@ import { dirname } from "path";
 import { confDB } from "./config.js";
 import { megaFunction } from "./server/mega.js";
 import multer from "multer";
-import { Socket } from "dgram";
 import { SocketAddress } from "net";
-const app = express();
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -40,11 +43,43 @@ app.use(
   }),
 );
 app.use(express.static("public"));
-const server = http.createServer(app);
 server.listen(80, () => {
   console.log("Server listening on port 80");
 });
-const io = new Server(server);
+io.on("connection", (socket) => {
+  console.log("a user connected");
+
+  // Unisciti a una room specifica
+  socket.on("join room", (room) => {
+    socket.join(room);
+    console.log(`User joined room: ${room}`);
+    // Se la chat non esiste ancora, la creiamo
+    if (!chats.find((chat) => chat.chat === room)) {
+      chats.push({ chat: room, messaggi: [] });
+    }
+  });
+
+  // Ascolta i messaggi di chat e li trasmette a tutti nella stessa room
+  socket.on("chat message", (room, { username, message, timestamp }) => {
+    io.to(room).emit("chat message", { username, message, timestamp }); // Trasmetti l'username e il messaggio
+    let chat = chats.find((chat) => chat.chat === room);
+    if (chat) {
+      chat.messaggi.push({
+        autore: username,
+        ora: timestamp,
+        messaggio: message,
+      });
+    }
+
+    console.log(chats);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("user disconnected");
+  });
+
+  socket.on("message", (data) => {});
+});
 const executeQuery = (sql) => {
   return new Promise((resolve, reject) => {
     connection.query(sql, function (err, result) {
@@ -158,9 +193,8 @@ app.post("/Regis_u", (req, res) => {
       username VARCHAR(255) NOT NULL,
       password VARCHAR(255) NOT NULL)`;
   executeQuery(admins);
-  let sql = `INSERT INTO adms(username, password) VALUES ('${username}', '${password}')`;
+  let sql = `INSERT INTO users(username, password) VALUES ('${username}', '${password}')`;
   executeQuery(sql).then((result) => {
     res.json({ result: "ok" });
   });
 });
-
