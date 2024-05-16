@@ -43,27 +43,25 @@ export const Regis_u = (user, pass) => {
       .catch((err) => reject(err));
   });
 };
-
-export const New_m = (u, m) => {
+export const room_up = (room) => {
   return new Promise((resolve, reject) => {
-    fetch("/new_m", {
+    fetch("/room_up", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        username: u,
-        message: m,
+        room: room,
       }),
-    });
+    })
+      .then((resp) => resp.json())
+      .then((response) => resolve(response))
+      .catch((err) => reject(err));
   });
 };
-export const New_u = (u, m) => {
-  return new Promise((resolve, reject) => {
-    fetch("/new_c", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username: u,
-      }),
-    });
+export const room_get = async () => {
+  let dati = await fetch("/room_get", {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
   });
+  dati = await dati.json();
+  return dati;
 };

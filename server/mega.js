@@ -1,18 +1,16 @@
-import { createRequire } from "module";
+import {createRequire} from "module";
 
 const require = createRequire(import.meta.url);
 
-const { File, Storage } = require("megajs");
-const url = require("url");
-const path = require("path");
-const fs = require("fs");
+const { File, Storage } = require('megajs');
+const url = require('url');
+const path = require('path');
+const fs = require('fs');
 
-const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 // Leggi il file di configurazione
-const conf = JSON.parse(
-    fs.readFileSync(path.join(__dirname, "../mega.json"), "utf8"),
-);
+const conf = JSON.parse(fs.readFileSync(path.join(__dirname, '../mega.json'), 'utf8'));
 
 // Crea la connessione allo storage una sola volta
 const storage = new Storage({
@@ -50,4 +48,4 @@ const megaFunction = {
     },
 };
 
-export { megaFunction };
+export{ megaFunction }

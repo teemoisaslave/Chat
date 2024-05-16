@@ -52,8 +52,6 @@ io.on("connection", (socket) => {
   // Unisciti a una room specifica
   socket.on("join room", (room) => {
     socket.join(room);
-    users.push(username);
-    console.log(users);
     console.log(`User joined room: ${room}`);
     // Se la chat non esiste ancora, la creiamo
     if (!chats.find((chat) => chat.chat === room)) {
@@ -205,4 +203,55 @@ app.post("/Regis_u", (req, res) => {
   executeQuery(sql).then((result) => {
     res.json({ result: "ok" });
   });
+});
+app.post("/room_up", (req, res) => {
+  let r = req.body.room;
+  let sql = `CREATE TABLE IF NOT EXISTS rooms(
+  id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+  room VARCHAR(255) NOT NULL)`;
+  executeQuery(sql);
+  sql = `INSERT INTO rooms(room) VALUES ('${r}')`;
+  executeQuery(sql);
+});
+app.get("/room_get", (req, res) => {
+  let sql = `CREATE TABLE IF NOT EXISTS rooms(
+  id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+  room VARCHAR(255) NOT NULL)`;
+  executeQuery(sql);
+  sql = `SELECT * 
+  FROM rooms`;
+  executeQuery(sql).then((result) => {
+    res.json({ result: "ok", rooms: result });
+  });
+});
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 500 * 1024 * 1024, // limita la dimensione del file a 5MB
+  },
+  allowUploadBuffering: true, // abilita il buffering del file
+});
+app.post("/upload", upload.single("file"), async (req, res) => {
+  try {
+    const file = req.file; // Accedi al file caricato
+    const fileName = path.basename(file.originalname); // Estrai solo il nome del file
+    const link = await megaFunction.uploadFileToStorage(fileName, file.buffer); // Carica il file su Mega
+    console.log("File caricato con successo. Path: ", fileName);
+    res.status(200).json({ Result: fileName, link: link }); // Restituisci solo il nome del file e il link
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Errore del server");
+  }
+});
+app.post("/download", async (req, res) => {
+  const link = req.body.mega;
+  const name = req.body.name;
+  try {
+    const { stream, fileName } = await megaFunction.downloadFileFromLink(link); // Scarica il file da Mega
+    res.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+    stream.pipe(res); // Invia il flusso di dati al client
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Errore del server");
+  }
 });
