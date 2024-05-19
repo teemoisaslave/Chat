@@ -43,47 +43,10 @@ app.use(
     extended: true,
   }),
 );
+
 app.use(express.static("public"));
 server.listen(80, () => {
   console.log("Server listening on port 80");
-});
-io.on("connection", (socket) => {
-  console.log("a user connected");
-  // Unisciti a una room specifica
-  socket.on("join room", (room) => {
-    socket.join(room);
-    console.log(`User joined room: ${room}`);
-    // Se la chat non esiste ancora, la creiamo
-    if (!chats.find((chat) => chat.chat === room)) {
-      chats.push({ chat: room, messaggi: [] });
-    }
-  });
-
-  // Ascolta i messaggi di chat e li trasmette a tutti nella stessa room
-  socket.on("chat message", (room, { username, message, timestamp }) => {
-    io.to(room).emit("chat message", { username, message, timestamp }); // Trasmetti l'username e il messaggio
-    let chat = chats.find((chat) => chat.chat === room);
-    if (chat) {
-      chat.messaggi.push({
-        autore: username,
-        ora: timestamp,
-        messaggio: message,
-      });
-      console.log(users);
-    }
-  });
-
-  socket.on("disconnect", () => {
-    for (let i = 0; i < users.length; i++) {
-      console.log(socket.id, users[i]);
-      if (socket.id === users[i]) {
-        users.splice(i, 1);
-      }
-    }
-    console.log("user disconnected");
-  });
-
-  socket.on("message", (data) => {});
 });
 
 const executeQuery = (sql) => {
@@ -97,6 +60,39 @@ const executeQuery = (sql) => {
     });
   });
 };
+io.on("connection", (socket) => {
+  console.log("a user connected");
+  console.log(socket.id);
+  // Unisciti a una room specifica
+  socket.on("join room", (room) => {
+    socket.join(room);
+    console.log(`User joined room: ${room}`);
+    // Se la chat non esiste ancora, la creiamo
+    if (!chats.find((chat) => chat.chat === room)) {
+      chats.push({ chat: room, messaggi: [] });
+    }
+  });
+
+  // Ascolta i messaggi di chat e li trasmette a tutti nella stessa room
+  socket.on("chat message", (room, { username, message, timestamp }) => {
+    io.to(room).emit("chat message", { username, message, timestamp });
+    let chat = chats.find((chat) => chat.chat === room);
+    if (chat) {
+      chat.messaggi.push({
+        autore: username,
+        ora: timestamp,
+        messaggio: message,
+      });
+    }
+  });
+  socket.on("disconnect", () => {
+    console.log(socket.id);
+    let sql = `DELETE FROM online WHERE sid='${socket.id}'`;
+    executeQuery(sql);
+    console.log("user disconnected"); // undefined
+  });
+  socket.on("message", (data) => {});
+});
 const checkLogin = (us, pw, t) => {
   return new Promise((resolve, reject) => {
     if (t === "a") {
@@ -140,7 +136,6 @@ app.post("/login_u", (req, res) => {
       password VARCHAR(255) NOT NULL)`;
   executeQuery(admins);
   checkLogin(username, password, "u").then((result) => {
-    console.log(result, "ciao");
     if (result === "") {
       res.status(401);
       res.json({ result: "Unauthorized" });
@@ -163,7 +158,6 @@ app.post("/login", (req, res) => {
       password VARCHAR(255) NOT NULL)`;
   executeQuery(admins);
   checkLogin(username, password, "a").then((result) => {
-    console.log(result);
     if (result === "") {
       res.status(401);
       res.json({ result: "Unauthorized" });
@@ -171,20 +165,6 @@ app.post("/login", (req, res) => {
       res.json({ result: "ok" });
     }
   });
-});
-app.post("/new_c", (req, res) => {
-  let date = new Date().toLocaleString();
-  console.log("socket connected: " + req.body.username);
-  io.emit("chat", "new client: " + req.body.username + "\n" + date);
-  res.send("ok");
-});
-app.post("/new_m", (req, res) => {
-  let message = req.body.message;
-  let user = req.body.username;
-  let date = new Date().toLocaleString();
-  console.log("message: " + message);
-  io.emit("chat", req.body.username + ":" + "\n" + message + "\n" + date);
-  res.send("ok");
 });
 app.post("/Regis_u", (req, res) => {
   let username = req.body.username;
@@ -224,34 +204,138 @@ app.get("/room_get", (req, res) => {
     res.json({ result: "ok", rooms: result });
   });
 });
+app.post("/user_get", (req, res) => {
+  let sql = `CREATE TABLE IF NOT EXISTS online(
+  userid varchar(255) NOT NULL,
+  roomid VARCHAR(255) NOT NULL,
+  sid VARCHAR(255) NOT NULL,
+  PRIMARY KEY (sid))`;
+  executeQuery(sql);
+  sql = `SELECT * 
+  FROM online`;
+  executeQuery(sql).then((result) => {
+    for (let i = 0; i < result.length; i++) {
+      if (users.includes(result[i].sid)) {
+      } else {
+        users.push(result[i].sid);
+      }
+    }
+    res.json({ result: "ok", message: result });
+  });
+});
+app.post("/user_up", (req, res) => {
+  let r = req.body.room;
+  let u = req.body.username;
+  let s = req.body.sid;
+  let sql = `CREATE TABLE IF NOT EXISTS online(
+  userid varchar(255) NOT NULL,
+  roomid VARCHAR(255) NOT NULL,
+  sid VARCHAR(255) NOT NULL,
+  PRIMARY KEY (sid))`;
+  executeQuery(sql);
+  sql = `INSERT INTO online(roomid,userid,sid) VALUES ('${r}','${u}','${s}')`;
+  executeQuery(sql);
+});
+app.post("/user_update", (req, res) => {
+  let r = req.body.room;
+  let u = req.body.username;
+  let s = req.body.sid;
+  let sql = `CREATE TABLE IF NOT EXISTS online(
+  userid varchar(255) NOT NULL,
+  roomid VARCHAR(255) NOT NULL,
+  sid VARCHAR(255) NOT NULL,
+  PRIMARY KEY (sid))`;
+  executeQuery(sql);
+  sql = `UPDATE online SET roomid = '${r}', sid = '${s}' WHERE userid = '${u}'`;
+  executeQuery(sql);
+  console.log("ciao");
+});
+app.post("/msng_get", (req, res) => {
+  let room = req.body.room;
+  let sql = `CREATE TABLE IF NOT EXISTS messages(
+    id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    message VARCHAR(255) NOT NULL,
+    roomid VARCHAR(255) NOT NULL,
+    userid VARCHAR(255) NOT NULL,
+    timestamp VARCHAR(255) NOT NULL)`;
+  executeQuery(sql);
+  sql = `SELECT * 
+  FROM messages
+  WHERE roomid='${room}'`;
+  executeQuery(sql).then((result) => {
+    res.json({ result: "ok", message: result });
+  });
+});
+
+app.post("/msng_up", (req, res) => {
+  let r = req.body.room;
+  let m = req.body.message;
+  let u = req.body.username;
+  let t = req.body.timestamp;
+  let sql = `CREATE TABLE IF NOT EXISTS messages(
+  id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+  message VARCHAR(255) NOT NULL,
+  roomid VARCHAR(255) NOT NULL,
+  userid VARCHAR(255) NOT NULL,
+  timestamp VARCHAR(255) NOT NULL)`;
+  executeQuery(sql);
+  sql = `INSERT INTO messages(message,roomid,userid,timestamp) VALUES ('${m}','${r}','${u}','${t}')`;
+  executeQuery(sql);
+});
+app.post("/ban_u", (req, res) => {
+  let u = req.body.username;
+  let sql = `CREATE TABLE IF NOT EXISTS banned(
+  id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+  userid VARCHAR(255) NOT NULL)`;
+  executeQuery(sql);
+  sql = `INSERT INTO banned(userid) VALUES ('${u}')`;
+  executeQuery(sql);
+});
+app.post("/ban_get", (req, res) => {
+  let room = req.body.room;
+  let sql = `CREATE TABLE IF NOT EXISTS banned(
+    id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    userid VARCHAR(255) NOT NULL)`;
+  executeQuery(sql);
+  sql = `SELECT * 
+  FROM banned`;
+  executeQuery(sql).then((result) => {
+    console.log(result);
+    res.json({ result: "ok", message: result });
+  });
+});
+
+
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 500 * 1024 * 1024, // limita la dimensione del file a 5MB
+      fileSize: 500 * 1024 * 1024, // limita la dimensione del file a 5MB
   },
   allowUploadBuffering: true, // abilita il buffering del file
 });
-app.post("/upload", upload.single("file"), async (req, res) => {
+app.post('/upload', upload.single('file'), async (req, res) => {
   try {
-    const file = req.file; // Accedi al file caricato
-    const fileName = path.basename(file.originalname); // Estrai solo il nome del file
-    const link = await megaFunction.uploadFileToStorage(fileName, file.buffer); // Carica il file su Mega
-    console.log("File caricato con successo. Path: ", fileName);
-    res.status(200).json({ Result: fileName, link: link }); // Restituisci solo il nome del file e il link
+      const file = req.file; // Accedi al file caricato
+      const fileName = path.basename(file.originalname); // Estrai solo il nome del file
+      const link = await megaFunction.uploadFileToStorage(fileName, file.buffer); // Carica il file su Mega
+      console.log('File caricato con successo. Path: ', fileName);
+      res.status(200).json({"Result": fileName, "link": link}); // Restituisci solo il nome del file e il link
   } catch (error) {
-    console.error(error);
-    res.status(500).send("Errore del server");
+      console.error(error);
+      res.status(500).send('Errore del server');
   }
 });
-app.post("/download", async (req, res) => {
+
+app.post('/download', async (req, res) => {
   const link = req.body.mega;
   const name = req.body.name;
   try {
-    const { stream, fileName } = await megaFunction.downloadFileFromLink(link); // Scarica il file da Mega
-    res.setHeader("Content-Disposition", "attachment; filename=" + fileName);
-    stream.pipe(res); // Invia il flusso di dati al client
+      const {stream, fileName} = await megaFunction.downloadFileFromLink(link); // Scarica il file da Mega
+      res.setHeader('Content-Disposition', 'attachment; filename=' + fileName);
+      stream.pipe(res); // Invia il flusso di dati al client
   } catch (error) {
-    console.error(error);
-    res.status(500).send("Errore del server");
+      console.error(error);
+      res.status(500).send('Errore del server');
   }
 });

@@ -9,7 +9,7 @@ const fs = require('fs');
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
-// Leggi il file di configurazione
+
 const conf = JSON.parse(fs.readFileSync(path.join(__dirname, '../mega.json'), 'utf8'));
 
 // Crea la connessione allo storage una sola volta
@@ -26,7 +26,9 @@ if (existingFolder) {
     folder = await root.mkdir(conf.directory);
 }
 
+
 const megaFunction = {
+//Il percorso del file viene creato utilizzando il nome fornito, successivamente viene caricato il file con il percorso specificato e i dati forniti nella cartella remota, da cui si ottiene un link per il file caricato. Infine, il link del file viene restituito.
     uploadFileToStorage: async (name, data) => {
         const filePath = path.join(name);
         console.log(filePath);

@@ -63,15 +63,26 @@
                                     >
                                         person
                                     </span>
-                                    
                                 </button>
                             </li>
                         </ul>
                     </div>
+                    <div>
+                        <a href=./ban.html>
+                        <button
+                            id="grenci"
+                            type="button' class='btn btn-primary nav-link d-inline-flex p-2 rounded-3'"
+                        >
+                            BAN
+                        </button>
+                            </a>
+                    </div>
                 </div>
             </nav>
+            <div class="card card-body rounded-3" id="users"></div>
             <br />
             <div class="card card-body rounded-3">
+                <img id="image" />
                 <ul id="messages"></ul>
             </div>
             <form id="form" action="">
@@ -85,12 +96,8 @@
                 <button class="btn btn-outline-light rounded-4" type="submit">
                     Send
                 </button>
-                <input
-                    class="form-control"
-                    type="file"
-                    name="inputFiles"
-                    id="formPictures"
-                />
+                <input type="file" id="img" />
+                <input type="submit" value="Invia" id="invia" />
             </form>
             <!-- Modal -->
             <div
@@ -109,14 +116,6 @@
                         </div>
                         <form class="form-horizontal" id="register">
                             <div class="modal-body">
-                                <input
-                                    id="username"
-                                    class="form-control rounded-3"
-                                    autocomplete="off"
-                                    placeholder="Enter username"
-                                    required
-                                />
-                                <br />
                                 <!-- Campo di input per l'username -->
                                 <input
                                     id="room"

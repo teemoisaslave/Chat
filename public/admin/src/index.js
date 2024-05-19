@@ -1,20 +1,31 @@
-import { room_up, room_get } from "../../connection.js";
+//import { setgid } from "process";
+import {
+  room_up,
+  room_get,
+  msng_get,
+  msng_up,
+  user_get,
+  user_up,
+  user_update,
+  ban_get,
+} from "../../connection.js";
 const socket = io();
+const imageElement = document.getElementById("image");
 const invia = document.getElementById("invia");
 const immagine = document.getElementById("img");
 const form = document.getElementById("form");
 const input = document.getElementById("input");
 const register = document.getElementById("register");
 const roomInput = document.getElementById("room");
-const usernameInput = document.getElementById("username");
 const messages = document.getElementById("messages");
 const myModal = new bootstrap.Modal("#modalAccedi");
 const roo = document.getElementById("rooms");
+const users = document.getElementById("users");
+const ban = document.getElementById("grenci");
 let rooms = [];
 myModal.show();
+
 room_get().then((json) => {
-  console.log(json.rooms[0]);
-  console.log(json.rooms.length);
   let template = `<li>%room</li>`;
   let html = "";
   html += `<ul>`;
@@ -24,19 +35,27 @@ room_get().then((json) => {
   }
   html += `</ul>`;
   roo.innerHTML = html;
-  console.log(rooms, "ciao");
 });
+
 let room = "";
 let username = "";
+let messageData = [];
 register.addEventListener("submit", (e) => {
   e.preventDefault();
-  if (usernameInput.value && roomInput.value) {
+  users.innerHTML = "";
+  let onlines = [];
+  let onlines3 = [];
+  if (roomInput.value) {
     room = roomInput.value;
-    username = usernameInput.value;
+    if (onlines.includes("admin")) {
+      console.log("no");
+    } else {
+      onlines.push("admin");
+      onlines3.push({ roomid: room, userid: "admin", sid: socket.id });
+    }
     myModal.hide();
     let flag = 0;
     for (let i = 0; i < rooms.length; i++) {
-      console.log(room, rooms[i]);
       if (room === rooms[i]) {
         flag = 1;
       }
@@ -44,14 +63,101 @@ register.addEventListener("submit", (e) => {
     if (flag === 0) {
       room_up(room).then((json) => {});
     }
+    user_get().then((json) => {
+      if (json.message.length === 0) {
+        json.message.push({
+          roomid: room,
+          userid: "admin",
+          sid: socket.id,
+        });
+      }
+      console.log(json);
+      console.log(socket.id);
+      console.log(onlines);
+      console.log(onlines3);
+      for (let i = 0; i < json.message.length; i++) {
+        for (let j = 0; j < onlines3.length; j++) {
+          if (json.message[i].userid === onlines3[j].userid) {
+            if (json.message[i].sid !== onlines3[j].sid) {
+              json.message[i].sid = onlines3[j].sid;
+            } else if (json.message[i].roomid !== onlines3[j].roomid) {
+              json.message[i].roomid = onlines3[j].roomid;
+            }
+          }
+        }
+      }
+      console.log(json);
+      console.log(onlines3);
+      let flag = 0;
+      let onlines2 = [];
+      for (let i = 0; i < onlines.length; i++) {
+        for (let z = 0; z < json.message.length; z++) {
+          if (
+            onlines3[i].userid === json.message[z].userid &&
+            json.message[z].sid === socket.id &&
+            json.message[z].roomid === onlines3[i].roomid
+          ) {
+            user_update(room, "admin", socket.id).then((json1) => {});
+          } else if (
+            onlines3[i].userid === json.message[z].userid &&
+            json.message[z].sid === socket.id &&
+            json.message[z].roomid !== onlines3[i].roomid
+          ) {
+            console.log(onlines3[i]);
+            user_update(room, "admin", socket.id).then((json1) => {});
+          } else if (
+            onlines3[i].userid === json.message[z].userid &&
+            json.message[z].sid !== socket.id
+          ) {
+            console.log("update", onlines[i]);
+            user_update(room, "admin", socket.id).then((json1) => {});
+          } else if (
+            onlines.includes(json.message[z].userid) === false &&
+            onlines2.includes(json.message[z].userid) === false
+          ) {
+            onlines2.push(json.message[z].userid);
+            if (flag === 0) {
+              flag = 1;
+            }
+          }
+        }
+      }
+    });
+    const timestamp = new Date().toLocaleString("it-IT", {
+      year: "2-digit",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    socket.emit("chat message", room, {
+      username: "bot",
+      message: "admin" + "--JOINED THE CHAT",
+      timestamp,
+    });
+    messageData = [];
+    msng_get(room).then((json) => {
+      console.log(json.message.length);
+
+      for (let i = 0; i < json.message.length; i++) {
+        messageData.push({
+          username: json.message[i].userid,
+          message: json.message[i].message,
+          timestamp: json.message[i].timestamp,
+        });
+      } // Aggiungi il messaggio all'array
+      messages.innerHTML = messageData
+        .map(({ username, message, timestamp }) => {
+          const align = username === "admin" ? "me" : "others";
+          return `<li class="${align}">[${timestamp}] admin: ${message}</li>`;
+        })
+        .join("");
+
+      // Scorri fino all'ultimo messaggio
+      window.scrollTo(0, document.body.scrollHeight);
+    });
   }
 });
-
-invia.onclick = () => {
-  uploadFile(immagine).then((jason) => {
-    console.log(jason);
-  });
-};
 
 form.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -65,26 +171,27 @@ form.addEventListener("submit", (e) => {
     });
     socket.emit("join room", room);
     socket.emit("chat message", room, {
-      username,
+      username: "admin",
       message: input.value,
       timestamp,
-    }); // Invia l'username e il messaggio
+    });
+    msng_up(input.value, room, "admin", timestamp).then((json) => {});
     input.value = "";
   }
 });
 
-let messageData = []; // Array per salvare i dati dei messaggi
-
 socket.on("chat message", function (message) {
+  console.log(message);
   messageData.push(message); // Aggiungi il messaggio all'array
   displayMessages(); // Visualizza i messaggi
 });
+socket.on("disconnect", () => {});
 
 function displayMessages() {
   messages.innerHTML = messageData
     .map(({ username, message, timestamp }) => {
-      const align = username === usernameInput.value ? "me" : "others";
-      return `<li class="${align}">[${timestamp}] ${username}: ${message}</li>`;
+      const align = username === "admin" ? "me" : "others";
+      return `<li class="${align}">[${timestamp}] admin: ${message}</li>`;
     })
     .join("");
 
@@ -92,29 +199,48 @@ function displayMessages() {
   window.scrollTo(0, document.body.scrollHeight);
 }
 
+invia.onclick = () => {
+  uploadFile(immagine).then((data) => {
+    console.log(data);
+  });
+};
+
+const render = (src) => {
+  imageElement.src = src;
+};
+
+// Funzione per il caricamento del file
 const uploadFile = async (img) => {
   const fileInput = img;
   const file = fileInput.files[0];
 
   const formData = new FormData();
   formData.append("file", file);
-  return new Promise((resolve, reject) => {
-    fetch("/upload", {
+
+  try {
+    const response = await fetch("/upload", {
       method: "POST",
       body: formData,
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("File caricato con successo. Path:", data.Result);
-        resolve(data);
-      })
-      .catch((error) => {
-        reject(error);
-      });
-  });
+    });
+
+    if (!response.ok) {
+      throw new Error("HTTP error " + response.status);
+    }
+
+    const data = await response.json();
+    console.log("File caricato con successo. Path:", data.Result);
+    render(data.Result);
+    return data;
+  } catch (error) {
+    console.error("Errore durante il caricamento del file:", error);
+    throw error;
+  }
 };
+
+// Funzione per il download del file
 const downloadFile = async (fileName) => {
   let body = { mega: fileName, name: "test.txt" };
+
   try {
     const response = await fetch("/download", {
       method: "POST",
@@ -135,10 +261,61 @@ const downloadFile = async (fileName) => {
       [buffer],
       response.headers.get("Content-Disposition").split("filename=")[1],
     );
-    // Create a new URL object for the file
     const url = window.URL.createObjectURL(file);
     return url;
-  } catch (e) {
-    console.error("Error during file download:", e);
+  } catch (error) {
+    console.error("Errore durante il download del file:", error);
+    throw error;
   }
 };
+
+const renderImageAsync = async (fileName) => {
+  try {
+    const src = await downloadFile(fileName);
+    render(src);
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+let onlines = [];
+register.addEventListener("submit", (e) => {
+  displayMessages();
+  setInterval(() => {
+    user_get().then((json) => {
+      let flag = 0;
+      for (let i = 0; i < json.message.length; i++) {
+        if (onlines.includes(json.message[i].userid)) {
+          flag += 1;
+        }
+      }
+      console.log(flag, onlines.length, json.message.length);
+      if (onlines.length === 0 && flag == 0) {
+        json.message.push({
+          roomid: room,
+          userid: "admin",
+          sid: socket.id,
+        });
+        onlines.push("admin");
+        user_up(room, "admin", socket.id).then((json1) => {});
+      }
+      console.log(json.message);
+      console.log(onlines);
+      let template = `<li>%room:-->%username</li>`;
+      let html = "";
+      html += `<ul>`;
+      for (let i = 0; i < json.message.length; i++) {
+        html += template
+          .replace("%room", json.message[i].roomid)
+          .replace("%username", "admin");
+      }
+      html += `</ul>`;
+      if (html === `<ul></ul>`) {
+      } else {
+        users.innerHTML = html;
+        console.log(html);
+      }
+    });
+  }, 3000);
+});
