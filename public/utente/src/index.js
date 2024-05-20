@@ -54,7 +54,6 @@ register.addEventListener("submit", (e) => {
       } else {
         banlist.push(json.message[i].userid);
       }
-      console.log(banlist);
     }
   });
   user_get().then((json) => {
@@ -62,31 +61,25 @@ register.addEventListener("submit", (e) => {
     for (let v = 0; v < json.message.length; v++) {
       prova.push(json.message[v].userid, json.message[v].roomid);
     }
-    console.log(prova);
-    register.addEventListener("submit", (e) => {
-      if (banlist.includes(usernameInput.value)) {
-        window.alert("Sei stato bannato");
-        window.location = "../pagina_principale.html";
-      }
-      if (
-        prova.includes(usernameInput.value) &&
-        prova.includes(roomInput.value)
-      ) {
-        alert("username già esistente");
-        window.location = "../pagina_principale.html";
-      }
-    });
+    if (banlist.includes(usernameInput.value)) {
+      window.alert("Sei stato bannato");
+      window.location = "../pagina_principale.html";
+    }
+    if (
+      prova.includes(usernameInput.value) &&
+      prova.includes(roomInput.value)
+    ) {
+      alert("username già esistente");
+      window.location = "../pagina_principale.html";
+    }
   });
   e.preventDefault();
   users.innerHTML = "";
   if (usernameInput.value && roomInput.value) {
     room = roomInput.value;
     rooms2.push(room);
-    console.log(rooms2);
     username = usernameInput.value;
-    console.log(room);
     if (onlines.includes(username)) {
-      console.log("no");
     } else {
       onlines.push(username);
       onlines3.push({ roomid: room, userid: username, sid: socket.id });
@@ -102,7 +95,6 @@ register.addEventListener("submit", (e) => {
       room_up(room).then((json) => {});
     }
     user_get().then((json) => {
-      console.log(flag69);
       if (json.message.length === 0) {
         json.message.push({
           roomid: rooms2[flag69],
@@ -119,8 +111,6 @@ register.addEventListener("submit", (e) => {
           sid: socket.id,
         });
       }
-      console.log(json.message);
-      console.log(onlines3);
       for (let i = 0; i < json.message.length; i++) {
         for (let j = 0; j < onlines3.length; j++) {
           if (json.message[i].userid === onlines3[j].userid) {
@@ -159,7 +149,6 @@ register.addEventListener("submit", (e) => {
             onlines.includes(json.message[z].userid) === false &&
             onlines2.includes(json.message[z].userid) === false
           ) {
-            console.log(json.message[z].userid);
             onlines2.push(json.message[z].userid);
             if (flag === 0) {
               flag = 1;
@@ -168,9 +157,15 @@ register.addEventListener("submit", (e) => {
         }
       }
     });
+  }
+  displayMessages();
+  setInterval(() => {
+    if (banlist.includes(usernameInput.value)) {
+      window.alert("Sei stato bannato");
+      window.location = "../pagina_principale.html";
+    }
     messageData = [];
     msng_get(room).then((json) => {
-      console.log(json.message.length);
       for (let i = 0; i < json.message.length; i++) {
         messageData.push({
           username: json.message[i].userid,
@@ -188,22 +183,13 @@ register.addEventListener("submit", (e) => {
       // Scorri fino all'ultimo messaggio
       window.scrollTo(0, document.body.scrollHeight);
     });
-  }
-  displayMessages();
-  setInterval(() => {
-    if (banlist.includes(usernameInput.value)) {
-      window.alert("Sei stato bannato");
-      window.location = "../pagina_principale.html";
-    }
     user_get().then((json) => {
-      console.log(onlines.length, flag);
       if (onlines.length === 1 && flag == 0) {
         json.message.push({
           roomid: room,
           userid: username,
           sid: socket.id,
         });
-        console.log("whut");
         onlines.push(usernameInput.value);
         user_up(room, username, socket.id).then((json1) => {});
       }
@@ -275,6 +261,7 @@ function displayMessages() {
 invia.onclick = () => {
   uploadFile(immagine).then((data) => {
     console.log(data);
+    downloadFile(data);
   });
 };
 //questa funzione prende la src per caricare l'immagine nell'html quando viene richiamata dalla funzione renderImageAsync
@@ -335,6 +322,7 @@ const downloadFile = async (fileName) => {
       response.headers.get("Content-Disposition").split("filename=")[1],
     );
     const url = window.URL.createObjectURL(file);
+    console.log(url);
     return url;
   } catch (error) {
     console.error("Errore durante il download del file:", error);
