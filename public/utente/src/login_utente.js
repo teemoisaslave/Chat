@@ -1,4 +1,4 @@
-import { Login_u} from "../../connection.js";
+import { Login_u } from "../../connection.js";
 
 const username = document.getElementById("username");
 const password = document.getElementById("password");
@@ -20,15 +20,17 @@ visibility_off
   }
 };
 
-login_u.onclick = () => {
+login.onclick = () => {
   console.log(username.value, password.value);
-  Login(username.value, password.value).then((response) => {
-    console.log(response);
-    if (response.result === "ok") {
-      localStorage.setItem("acesso", true);
-      window.location = "./admin.html";
-    } else {
-      window.alert("Errore nel Login");
-    }
-  });
+  Login_u(username.value + "@itis-molinari.eu", password.value).then(
+    (response) => {
+      console.log(response);
+      if (response.result === "ok") {
+        localStorage.setItem("acesso", true);
+        window.location = "./utente.html";
+      } else {
+        window.alert("Errore nel Login");
+      }
+    },
+  );
 };

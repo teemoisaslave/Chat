@@ -75,7 +75,7 @@ io.on("connection", (socket) => {
 
   // Ascolta i messaggi di chat e li trasmette a tutti nella stessa room
   socket.on("chat message", (room, { username, message, timestamp }) => {
-    io.to(room).emit("chat message", { username, message, timestamp });
+    io.to(room).emit("chat message", { timestamp, username, message });
     let chat = chats.find((chat) => chat.chat === room);
     if (chat) {
       chat.messaggi.push({
@@ -164,6 +164,18 @@ app.post("/login", (req, res) => {
     } else {
       res.json({ result: "ok" });
     }
+  });
+});
+app.post("/Utenti_get", (req, res) => {
+  let users = `CREATE TABLE IF NOT EXISTS users(
+    id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    username VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL)`;
+  executeQuery(users);
+  let sql = `SELECT * 
+  FROM users`;
+  executeQuery(sql).then((result) => {
+    res.json({ result: "ok", users: result });
   });
 });
 app.post("/Regis_u", (req, res) => {
@@ -257,6 +269,7 @@ app.post("/msng_get", (req, res) => {
     message VARCHAR(255) NOT NULL,
     roomid VARCHAR(255) NOT NULL,
     userid VARCHAR(255) NOT NULL,
+    type VARCHAR(255) NOT NULL,
     timestamp VARCHAR(255) NOT NULL)`;
   executeQuery(sql);
   sql = `SELECT * 
@@ -271,17 +284,30 @@ app.post("/msng_up", (req, res) => {
   let r = req.body.room;
   let m = req.body.message;
   let u = req.body.username;
+  let i = req.body.images;
   let t = req.body.timestamp;
   let sql = `CREATE TABLE IF NOT EXISTS messages(
-  id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-  message VARCHAR(255) NOT NULL,
-  roomid VARCHAR(255) NOT NULL,
-  userid VARCHAR(255) NOT NULL,
-  timestamp VARCHAR(255) NOT NULL)`;
+    id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    message VARCHAR(255) NOT NULL,
+    roomid VARCHAR(255) NOT NULL,
+    userid VARCHAR(255) NOT NULL,
+    type VARCHAR(255) NOT NULL,
+    timestamp VARCHAR(255) NOT NULL)`;
   executeQuery(sql);
-  sql = `INSERT INTO messages(message,roomid,userid,timestamp) VALUES ('${m}','${r}','${u}','${t}')`;
+  sql = `INSERT INTO messages(message,images,roomid,userid,timestamp) VALUES ('${m}','${i}','${r}','${u}','${t}')`;
   executeQuery(sql);
 });
+
+//app.post("/images",(req, res) => {
+ // let i = req.body.images;
+  //let sql = `CREATE TABLE IF NOT EXISTS(
+    //id INT PRIMARY KEY AUTO_INCREMENT,
+   // url VARCHAR(255) NOT NULL ) `;
+  //executeQuery(sql);
+  //sql = `INSERT INTO images (url) VALUES ('${url}')`;
+  //executeQuery(sql);
+//});
+
 app.post("/ban_u", (req, res) => {
   let u = req.body.username;
   let sql = `CREATE TABLE IF NOT EXISTS banned(
@@ -305,37 +331,35 @@ app.post("/ban_get", (req, res) => {
   });
 });
 
-
-
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-      fileSize: 500 * 1024 * 1024, // limita la dimensione del file a 5MB
+    fileSize: 500 * 1024 * 1024, // limita la dimensione del file a 5MB
   },
   allowUploadBuffering: true, // abilita il buffering del file
 });
-app.post('/upload', upload.single('file'), async (req, res) => {
+app.post("/upload", upload.single("file"), async (req, res) => {
   try {
-      const file = req.file; // Accedi al file caricato
-      const fileName = path.basename(file.originalname); // Estrai solo il nome del file
-      const link = await megaFunction.uploadFileToStorage(fileName, file.buffer); // Carica il file su Mega
-      console.log('File caricato con successo. Path: ', fileName);
-      res.status(200).json({"Result": fileName, "link": link}); // Restituisci solo il nome del file e il link
+    const file = req.file; // Accedi al file caricato
+    const fileName = path.basename(file.originalname); // Estrai solo il nome del file
+    const link = await megaFunction.uploadFileToStorage(fileName, file.buffer); // Carica il file su Mega
+    console.log("File caricato con successo. Path: ", fileName);
+    res.status(200).json({ Result: fileName, link: link }); // Restituisci solo il nome del file e il link
   } catch (error) {
-      console.error(error);
-      res.status(500).send('Errore del server');
+    console.error(error);
+    res.status(500).send("Errore del server");
   }
 });
 
-app.post('/download', async (req, res) => {
+app.post("/download", async (req, res) => {
   const link = req.body.mega;
   const name = req.body.name;
   try {
-      const {stream, fileName} = await megaFunction.downloadFileFromLink(link); // Scarica il file da Mega
-      res.setHeader('Content-Disposition', 'attachment; filename=' + fileName);
-      stream.pipe(res); // Invia il flusso di dati al client
+    const { stream, fileName } = await megaFunction.downloadFileFromLink(link); // Scarica il file da Mega
+    res.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+    stream.pipe(res); // Invia il flusso di dati al client
   } catch (error) {
-      console.error(error);
-      res.status(500).send('Errore del server');
+    console.error(error);
+    res.status(500).send("Errore del server");
   }
 });

@@ -24,66 +24,72 @@
     <body>
         <div class="container">
             <br />
-            <nav class="navbar navbar-expand-lg bg-body-tertiary rounded-3">
-                <div class="container-fluid">
-                    <a class="navbar-brand" href="#">Chat</a>
-                    <button
-                        class="navbar-toggler"
-                        type="button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#navbarSupportedContent"
-                        aria-controls="navbarSupportedContent"
-                        aria-expanded="false"
-                        aria-label="Toggle navigation"
-                    >
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                    <div
-                        class="collapse navbar-collapse"
-                        id="navbarSupportedContent"
-                    >
-                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                            <li class="nav-item">
-                                <a
-                                    class="nav-link active"
-                                    aria-current="page"
-                                    href="../pagina_principale.html"
-                                    >Home</a
-                                >
-                            </li>
-                            <li class="nav-item">
-                                <button
-                                    type="button"
-                                    class="btn btn-primary nav-link d-inline-flex p-2 rounded-3"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#modalAccedi"
-                                >
-                                    DETTAGLI<span
-                                        class="material-symbols-rounded"
-                                    >
-                                        person
-                                    </span>
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
-                    <div>
-                        <a href=./ban.html>
+            <div class="split right">
+                <div class="card card-body rounded-3" id="users"></div>
+                <br />
+            </div>
+            <div class='split left'>
+                <nav class="navbar navbar-expand-lg bg-body-tertiary rounded-3">
+                    <div class="container-fluid">
+                        <a class="navbar-brand" href="#">Chat</a>
                         <button
-                            id="grenci"
-                            type="button' class='btn btn-primary nav-link d-inline-flex p-2 rounded-3'"
+                            class="navbar-toggler"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#navbarSupportedContent"
+                            aria-controls="navbarSupportedContent"
+                            aria-expanded="false"
+                            aria-label="Toggle navigation"
                         >
-                            BAN
+                            <span class="navbar-toggler-icon"></span>
                         </button>
+                        <div
+                            class="collapse navbar-collapse"
+                            id="navbarSupportedContent"
+                        >
+                            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                                <li class="nav-item">
+                                    <a
+                                        class="nav-link active"
+                                        aria-current="page"
+                                        href="../pagina_principale.html"
+                                        >Home</a
+                                    >
+                                </li>
+                                <li class="nav-item">
+                                    <button
+                                        type="button"
+                                        class="btn btn-primary nav-link d-inline-flex p-2 rounded-3"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalAccedi"
+                                    >
+                                        DETTAGLI<span
+                                            class="material-symbols-rounded"
+                                        >
+                                            person
+                                        </span>
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                        <div>
+                            <a href=./ban.html>
+                            <button
+                                id="grenci"
+                                type="button' class='btn btn-primary nav-link d-inline-flex p-2 rounded-3'"
+                            >
+                                BAN
+                            </button>
                             </a>
+                        </div>
                     </div>
-                </div>
-            </nav>
-            <div class="card card-body rounded-3" id="users"></div>
-            <br />
+                </nav>
+                <div class="card card-body rounded-3" id="users"></div>
+                <br />
             <div class="card card-body rounded-3">
-                <img id="image" />
+                <img id="image" src="" style="width: auto; height: auto;">
                 <ul id="messages"></ul>
+            </div>
             </div>
             <form id="form" action="">
                 <input

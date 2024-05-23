@@ -27,9 +27,9 @@ const users = document.getElementById("users");
 let rooms = [];
 myModal.show();
 let banlist = [];
-let onlines4 = [];
 let room = "";
 room_get().then((json) => {
+  //let templateimg = `<img id="image" src="" />`;
   let template = `<li>%room</li>`;
   let html = "";
   html += `<ul>`;
@@ -260,8 +260,11 @@ function displayMessages() {
 //github.com/FapaKslapa/megajs_Example/blob/main/server/mega.js
 invia.onclick = () => {
   uploadFile(immagine).then((data) => {
-    console.log(data);
-    downloadFile(data);
+    console.log("data ", data);
+    downloadFile(data.link).then((src) => {
+      console.log(src);
+      render(src);
+    });
   });
 };
 //questa funzione prende la src per caricare l'immagine nell'html quando viene richiamata dalla funzione renderImageAsync
@@ -289,7 +292,6 @@ const uploadFile = async (img) => {
 
     const data = await response.json();
     console.log("File caricato con successo. Path:", data.Result);
-    render(data.Result);
     return data;
   } catch (error) {
     console.error("Errore durante il caricamento del file:", error);
@@ -299,6 +301,8 @@ const uploadFile = async (img) => {
 
 // Funzione per il download del file che prende il parametro filename per capire quale file scaricare per poi fare una fetch per ottenere i dati da scaricare per poi metterli nell'oggetto file e viene generato la URL per scaricare il file
 const downloadFile = async (fileName) => {
+  console.log(fileName);
+
   let body = { mega: fileName, name: "test.txt" };
 
   try {
@@ -326,18 +330,6 @@ const downloadFile = async (fileName) => {
     return url;
   } catch (error) {
     console.error("Errore durante il download del file:", error);
-    throw error;
-  }
-};
-
-const renderImageAsync = async (fileName) => {
-  //La funzione renderImageAsync accetta un parametro fileName che rappresenta il nome del file da scaricare.viene chiamato in modo asincrono la funzione downloadFile(fileName) per scaricare il file da mega,una volta ottenuto il percorso del file scaricato(che sarebbe src), chiama la funzione render per visualizzare l'immagine.
-
-  try {
-    const src = await downloadFile(fileName);
-    render(src);
-  } catch (error) {
-    console.error(error);
     throw error;
   }
 };
