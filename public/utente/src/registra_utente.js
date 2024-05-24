@@ -14,7 +14,7 @@ Utenti_get().then((response1) => {
     console.log(username.value, password.value, users);
     if (users.includes(username.value + "@itis-molinari.eu")) {
       window.alert("esiste già un utente con questo nome");
-    } else {
+    } else if (username.value && password.value) {
       Regis_u(username.value + "@itis-molinari.eu", password.value).then(
         (response) => {
           console.log(response);
@@ -26,6 +26,8 @@ Utenti_get().then((response1) => {
           }
         },
       );
+    } else {
+      window.alert("inserisci uno username e una password");
     }
   };
 });

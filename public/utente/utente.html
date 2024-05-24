@@ -75,7 +75,6 @@
                     </div>
                 </nav>
                 <div class="card card-body rounded-3">
-
                     <ul id="messages"></ul>
                 </div>
             </div>
@@ -90,56 +89,62 @@
                 <button class="btn btn-outline-light rounded-4" type="submit">
                     Send
                 </button>
-                <input type="file" id="img" />
-                <button type="button" id="invia">Invia</button>
+                <input type="file" id="img" class="form-control" />
+                <button
+                    type="button"
+                    id="invia"
+                    class="btn btn-primary rounded-3"
+                >
+                    Invia
+                </button>
             </form>
             <!-- Modal -->
-            <div
-                class="modal fade"
-                id="modalAccedi"
-                tabindex="-1"
-                data-bs-backdrop="static"
-                data-bs-keyboard="false"
-            >
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h1 class="modal-title fs-5" id="exampleModalLabel">
-                                Accedi
-                            </h1>
-                        </div>
-                        <form class="form-horizontal" id="register">
-                            <div class="modal-body">
-                                <input
-                                    id="username"
-                                    class="form-control rounded-3"
-                                    autocomplete="off"
-                                    placeholder="Enter username"
-                                    required
-                                />
-                                <br />
-                                <!-- Campo di input per l'username -->
-                                <input
-                                    id="room"
-                                    class="form-control rounded-3"
-                                    autocomplete="off"
-                                    placeholder="Enter room name"
-                                    required
-                                />
-                                se vuoi creare una nuova stanza inserisci un
-                                nome non riportato qua sotto
-                                <div id="rooms">rooms:</div>
-                            </div>
-                            <div class="modal-footer">
-                                <button
-                                    type="submit"
-                                    class="btn btn-outline-primary"
-                                >
-                                    Register
-                                </button>
-                            </div>
-                        </form>
+        </div>
+        <div
+            class="modal fade"
+            id="modalAccedi"
+            tabindex="-1"
+            data-bs-backdrop="static"
+            data-bs-keyboard="false"
+        >
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">
+                            SCEGLI CHAT NAME E STANZA
+                        </h1>
                     </div>
+                    <form class="form-horizontal" id="register">
+                        <div class="modal-body">
+                            <input
+                                id="username"
+                                class="form-control rounded-3"
+                                autocomplete="off"
+                                placeholder="Enter username"
+                                required
+                            />
+                            <br />
+                            <!-- Campo di input per l'username -->
+                            <input
+                                id="room"
+                                class="form-control rounded-3"
+                                autocomplete="off"
+                                placeholder="Enter room name"
+                                required
+                            />
+                            se vuoi creare una nuova stanza inserisci un nome
+                            non riportato qua sotto
+                            <div id="rooms">rooms:</div>
+                        </div>
+                        <div class="modal-footer">
+                            <button
+                                type="submit"
+                                class="btn btn-outline-primary"
+                            >
+                                Register
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

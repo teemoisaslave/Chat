@@ -88,7 +88,7 @@ export const msng_get = async (room) => {
   dati = await dati.json();
   return dati;
 };
-export const msng_up = (message, room, username, timestamp) => {
+export const msng_up = (message, room, username, timestamp, type) => {
   return new Promise((resolve, reject) => {
     fetch("/msng_up", {
       method: "POST",
@@ -98,6 +98,7 @@ export const msng_up = (message, room, username, timestamp) => {
         room: room,
         username: username,
         timestamp: timestamp,
+        type: type,
       }),
     })
       .then((resp) => resp.json())

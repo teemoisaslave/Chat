@@ -28,7 +28,7 @@
                 <div class="card card-body rounded-3" id="users"></div>
                 <br />
             </div>
-            <div class='split left'>
+            <div class="split left">
                 <nav class="navbar navbar-expand-lg bg-body-tertiary rounded-3">
                     <div class="container-fluid">
                         <a class="navbar-brand" href="#">Chat</a>
@@ -69,29 +69,21 @@
                                             person
                                         </span>
                                     </button>
+                                    <a
+                                        href="./ban.html"
+                                        class="nav-link d-inline-flex p-2 rounded-3"
+                                        >'<button id="banB">BAN</button></a
+                                    >
                                 </li>
                             </ul>
                         </div>
-                        <div>
-                            <a href=./ban.html>
-                            <button
-                                id="grenci"
-                                type="button' class='btn btn-primary nav-link d-inline-flex p-2 rounded-3'"
-                            >
-                                BAN
-                            </button>
-                            </a>
-                        </div>
                     </div>
                 </nav>
-                <div class="card card-body rounded-3" id="users"></div>
-                <br />
-            <div class="card card-body rounded-3">
-                <img id="image" src="" style="width: auto; height: auto;">
-                <ul id="messages"></ul>
+                <div class="card card-body rounded-3">
+                    <ul id="messages"></ul>
+                </div>
             </div>
-            </div>
-            <form id="form" action="">
+            <form id="form" onsubmit="return false">
                 <input
                     id="input"
                     autocomplete="off"
@@ -102,48 +94,53 @@
                 <button class="btn btn-outline-light rounded-4" type="submit">
                     Send
                 </button>
-                <input type="file" id="img" />
-                <input type="submit" value="Invia" id="invia" />
+                <input type="file" id="img" class="form-control" />
+                <button
+                    type="button"
+                    id="invia"
+                    class="btn btn-primary rounded-3"
+                >
+                    Invia
+                </button>
             </form>
             <!-- Modal -->
-            <div
-                class="modal fade"
-                id="modalAccedi"
-                tabindex="-1"
-                data-bs-backdrop="static"
-                data-bs-keyboard="false"
-            >
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h1 class="modal-title fs-5" id="exampleModalLabel">
-                                Accedi
-                            </h1>
-                        </div>
-                        <form class="form-horizontal" id="register">
-                            <div class="modal-body">
-                                <!-- Campo di input per l'username -->
-                                <input
-                                    id="room"
-                                    class="form-control rounded-3"
-                                    autocomplete="off"
-                                    placeholder="Enter room name"
-                                    required
-                                />
-                                se vuoi creare una nuova stanza inserisci un
-                                nome non riportato qua sotto
-                                <div id="rooms">rooms:</div>
-                            </div>
-                            <div class="modal-footer">
-                                <button
-                                    type="submit"
-                                    class="btn btn-outline-primary"
-                                >
-                                    Register
-                                </button>
-                            </div>
-                        </form>
+        </div>
+        <div
+            class="modal fade"
+            id="modalAccedi"
+            tabindex="-1"
+            data-bs-backdrop="static"
+            data-bs-keyboard="false"
+        >
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">
+                            SCEGLI STANZA
+                        </h1>
                     </div>
+                    <form class="form-horizontal" id="register">
+                        <div class="modal-body">
+                            <input
+                                id="room"
+                                class="form-control rounded-3"
+                                autocomplete="off"
+                                placeholder="Enter room name"
+                                required
+                            />
+                            se vuoi creare una nuova stanza inserisci un nome
+                            non riportato qua sotto
+                            <div id="rooms">rooms:</div>
+                        </div>
+                        <div class="modal-footer">
+                            <button
+                                type="submit"
+                                class="btn btn-outline-primary"
+                            >
+                                Register
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

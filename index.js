@@ -286,6 +286,7 @@ app.post("/msng_up", (req, res) => {
   let u = req.body.username;
   let i = req.body.images;
   let t = req.body.timestamp;
+  let ty = req.body.type;
   let sql = `CREATE TABLE IF NOT EXISTS messages(
     id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
     message VARCHAR(255) NOT NULL,
@@ -294,19 +295,9 @@ app.post("/msng_up", (req, res) => {
     type VARCHAR(255) NOT NULL,
     timestamp VARCHAR(255) NOT NULL)`;
   executeQuery(sql);
-  sql = `INSERT INTO messages(message,images,roomid,userid,timestamp) VALUES ('${m}','${i}','${r}','${u}','${t}')`;
+  sql = `INSERT INTO messages(message,roomid,userid,timestamp,type) VALUES ('${m}','${r}','${u}','${t}','${ty}')`;
   executeQuery(sql);
 });
-
-//app.post("/images",(req, res) => {
- // let i = req.body.images;
-  //let sql = `CREATE TABLE IF NOT EXISTS(
-    //id INT PRIMARY KEY AUTO_INCREMENT,
-   // url VARCHAR(255) NOT NULL ) `;
-  //executeQuery(sql);
-  //sql = `INSERT INTO images (url) VALUES ('${url}')`;
-  //executeQuery(sql);
-//});
 
 app.post("/ban_u", (req, res) => {
   let u = req.body.username;

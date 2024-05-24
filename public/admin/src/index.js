@@ -10,7 +10,10 @@ import {
   ban_get,
 } from "../../connection.js";
 const socket = io();
-const imageElement = document.getElementById("image");
+let onlines = [];
+let flag = 0;
+let leng;
+let imageElement = "";
 const invia = document.getElementById("invia");
 const immagine = document.getElementById("img");
 const form = document.getElementById("form");
@@ -21,11 +24,12 @@ const messages = document.getElementById("messages");
 const myModal = new bootstrap.Modal("#modalAccedi");
 const roo = document.getElementById("rooms");
 const users = document.getElementById("users");
-const ban = document.getElementById("grenci");
 let rooms = [];
 myModal.show();
-
+let banlist = [];
+let room = "";
 room_get().then((json) => {
+  //let templateimg = `<img id="image" src="" />`;
   let template = `<li>%room</li>`;
   let html = "";
   html += `<ul>`;
@@ -36,19 +40,51 @@ room_get().then((json) => {
   html += `</ul>`;
   roo.innerHTML = html;
 });
-
-let room = "";
-let username = "";
+let rooms2 = [];
+let flag69 = 0;
 let messageData = [];
+let onlines3 = [];
+onlines = [];
 register.addEventListener("submit", (e) => {
+  displayMessages([]);
+  rooms2.push[roomInput.value];
+  ban_get().then((json) => {
+    for (let i = 0; i < json.message.length; i++) {
+      if (banlist.includes(json.message[i].userid)) {
+      } else {
+        banlist.push(json.message[i].userid);
+      }
+    }
+  });
+  user_get().then((json) => {
+    let prova = [];
+    for (let v = 0; v < json.message.length; v++) {
+      prova.push(
+        json.message[v].userid,
+        json.message[v].roomid,
+        json.message[v].sid,
+      );
+    }
+    if (banlist.includes("admin")) {
+      window.alert("Sei stato bannato");
+      window.location = "../pagina_principale.html";
+    }
+    if (
+      prova.includes("admin") &&
+      prova.includes(roomInput.value) &&
+      prova.includes(socket.id) === false
+    ) {
+      alert("username già esistente");
+      window.location = "../pagina_principale.html";
+    }
+  });
   e.preventDefault();
   users.innerHTML = "";
-  let onlines = [];
-  let onlines3 = [];
   if (roomInput.value) {
     room = roomInput.value;
+    rooms2.push(room);
+
     if (onlines.includes("admin")) {
-      console.log("no");
     } else {
       onlines.push("admin");
       onlines3.push({ roomid: room, userid: "admin", sid: socket.id });
@@ -66,15 +102,20 @@ register.addEventListener("submit", (e) => {
     user_get().then((json) => {
       if (json.message.length === 0) {
         json.message.push({
-          roomid: room,
+          roomid: rooms2[flag69],
           userid: "admin",
           sid: socket.id,
         });
       }
-      console.log(json);
-      console.log(socket.id);
-      console.log(onlines);
-      console.log(onlines3);
+
+      if (flag69 > 0) {
+        let old = onlines3.splice(-1, 1);
+        onlines3.push({
+          roomid: rooms2[flag69 - 1],
+          userid: "admin",
+          sid: socket.id,
+        });
+      }
       for (let i = 0; i < json.message.length; i++) {
         for (let j = 0; j < onlines3.length; j++) {
           if (json.message[i].userid === onlines3[j].userid) {
@@ -86,14 +127,14 @@ register.addEventListener("submit", (e) => {
           }
         }
       }
-      console.log(json);
-      console.log(onlines3);
+
       let flag = 0;
       let onlines2 = [];
-      for (let i = 0; i < onlines.length; i++) {
+
+      for (let i = 0; i < onlines3.length; i++) {
         for (let z = 0; z < json.message.length; z++) {
           if (
-            onlines3[i].userid === json.message[z].userid &&
+            onlines3[i].userid === onlines3[i].userid &&
             json.message[z].sid === socket.id &&
             json.message[z].roomid === onlines3[i].roomid
           ) {
@@ -103,13 +144,11 @@ register.addEventListener("submit", (e) => {
             json.message[z].sid === socket.id &&
             json.message[z].roomid !== onlines3[i].roomid
           ) {
-            console.log(onlines3[i]);
             user_update(room, "admin", socket.id).then((json1) => {});
           } else if (
             onlines3[i].userid === json.message[z].userid &&
             json.message[z].sid !== socket.id
           ) {
-            console.log("update", onlines[i]);
             user_update(room, "admin", socket.id).then((json1) => {});
           } else if (
             onlines.includes(json.message[z].userid) === false &&
@@ -123,40 +162,79 @@ register.addEventListener("submit", (e) => {
         }
       }
     });
-    const timestamp = new Date().toLocaleString("it-IT", {
-      year: "2-digit",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    socket.emit("chat message", room, {
-      username: "bot",
-      message: "admin" + "--JOINED THE CHAT",
-      timestamp,
-    });
-    messageData = [];
-    msng_get(room).then((json) => {
-      console.log(json.message.length);
-
-      for (let i = 0; i < json.message.length; i++) {
-        messageData.push({
-          username: json.message[i].userid,
-          message: json.message[i].message,
-          timestamp: json.message[i].timestamp,
-        });
-      } // Aggiungi il messaggio all'array
-      messages.innerHTML = messageData
-        .map(({ username, message, timestamp }) => {
-          const align = username === "admin" ? "me" : "others";
-          return `<li class="${align}">[${timestamp}] admin: ${message}</li>`;
-        })
-        .join("");
-
-      // Scorri fino all'ultimo messaggio
-      window.scrollTo(0, document.body.scrollHeight);
-    });
   }
+  setInterval(() => {
+    msng_get(room).then((json) => {
+      
+      if (messageData.length > json.message.length) {
+        leng = 0;
+        messageData = [];
+      } else {
+        leng = messageData.length;
+      }
+      if (leng === 0) {
+        for (let i = 0; i < json.message.length; i++) {
+          messageData.push({
+            username: json.message[i].userid,
+            message: json.message[i].message,
+            timestamp: json.message[i].timestamp,
+            type: json.message[i].type,
+          });
+        }
+        displayMessages(messageData);
+      } else if (messageData.length < json.message.length) {
+        for (let i = 0; i < json.message.length - leng; i++) {
+          let index = json.message.length - i - 1;
+          console.log(index, "indice");
+          console.log(messageData);
+          console.log(json.message[index]);
+          messageData.push({
+            username: json.message[index].userid,
+            message: json.message[index].message,
+            timestamp: json.message[index].timestamp,
+            type: json.message[index].type,
+          });
+          messageData[index];
+        }
+        displayMessages(messageData);
+      } else if (messageData.length >= json.message.length) {
+      }
+    });
+    if (banlist.includes("admin")) {
+      window.alert("Sei stato bannato");
+      window.location = "../pagina_principale.html";
+    }
+    user_get().then((json) => {
+      if (onlines.length === 1 && flag == 0) {
+        json.message.push({
+          roomid: room,
+          userid: "admin",
+          sid: socket.id,
+        });
+        onlines.push("admin");
+        user_up(room, "admin", socket.id).then((json1) => {});
+      }
+      for (let i = 0; i < json.message.length; i++) {
+        if (onlines.includes(json.message[i].userid)) {
+          flag += 1;
+        }
+      }
+      let template = `<li>%room:-->%username</li>`;
+      let html = "";
+      html += `<ul>`;
+      for (let i = 0; i < json.message.length; i++) {
+        html += template
+          .replace("%room", json.message[i].roomid)
+          .replace("%username", json.message[i].userid);
+      }
+      html += `</ul>`;
+      if (html === `<ul></ul>`) {
+      } else {
+        users.innerHTML = html;
+      }
+    });
+  }, 500);
+  flag69 += 1;
 });
 
 form.addEventListener("submit", (e) => {
@@ -174,42 +252,64 @@ form.addEventListener("submit", (e) => {
       username: "admin",
       message: input.value,
       timestamp,
+      type: "m",
     });
-    msng_up(input.value, room, "admin", timestamp).then((json) => {});
+    msng_up(input.value, room, "admin", timestamp, "m").then((json) => {});
     input.value = "";
   }
 });
 
-socket.on("chat message", function (message) {
-  console.log(message);
-  messageData.push(message); // Aggiungi il messaggio all'array
-  displayMessages(); // Visualizza i messaggi
-});
 socket.on("disconnect", () => {});
 
-function displayMessages() {
-  messages.innerHTML = messageData
-    .map(({ username, message, timestamp }) => {
-      const align = username === "admin" ? "me" : "others";
-      return `<li class="${align}">[${timestamp}] admin: ${message}</li>`;
+invia.onclick = () => {
+  uploadFile(immagine).then((data) => {
+    downloadFile(data.link).then((src) => {
+      render(src, data.link);
+    });
+  });
+};
+//questa funzione prende la src per caricare l'immagine nell'html quando viene richiamata dalla funzione renderImageAsync
+const render = (src, link) => {
+  const align = username === "admin" ? "me" : "others";
+  const timestamp = new Date().toLocaleString("it-IT", {
+    year: "2-digit",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  imageElement = `<li class="${align}">[${timestamp}] ${username}: <img id="image" src="${src}" /></li>`;
+  messages.innerHTML += imageElement;
+  msng_up(link, room, "admin", timestamp, "i").then((json) => {});
+};
+const render1 = (src, link, username, timestamp) => {
+  const align = username === "admin" ? "me" : "others";
+  imageElement = `<li class="${align}">[${timestamp}] ${username}: <img id="image" src="${src}" /></li>`;
+  messages.innerHTML += imageElement;
+};
+
+async function displayMessages(mensages) {
+  console.log(mensages);
+  messages.innerHTML = mensages
+    .map(({ username, message, timestamp, type }) => {
+      if (type === "m") {
+        const align = username === "admin" ? "me" : "others";
+        return `<li class="${align}">[${timestamp}] ${username}: ${message}</li>`;
+      } else if (type === "i") {
+        downloadFile(message).then((src) => {
+          render1(src, message, username, timestamp);
+        });
+      }
     })
     .join("");
 
   // Scorri fino all'ultimo messaggio
   window.scrollTo(0, document.body.scrollHeight);
 }
+//Questa è la funzione che, non appena viene cliccato il tasto 'invia', gestisce gli eventi per l'upload del file.
+//github.com/FapaKslapa/megajs_Example/blob/main/server/mega.js
 
-invia.onclick = () => {
-  uploadFile(immagine).then((data) => {
-    console.log(data);
-  });
-};
-
-const render = (src) => {
-  imageElement.src = src;
-};
-
-// Funzione per il caricamento del file
+// Funzione per il caricamento del file che prende in input il file selezionato dall'utente e anche qui viene messo tutto all'interno di un'oggetto file per poi fare una fetch per caricare il file, se andata bene i dati all'interno dell'oggeto vengono trasformati in un file json per poi fare la render e restituire i dati del file
 const uploadFile = async (img) => {
   const fileInput = img;
   const file = fileInput.files[0];
@@ -229,7 +329,6 @@ const uploadFile = async (img) => {
 
     const data = await response.json();
     console.log("File caricato con successo. Path:", data.Result);
-    render(data.Result);
     return data;
   } catch (error) {
     console.error("Errore durante il caricamento del file:", error);
@@ -237,8 +336,10 @@ const uploadFile = async (img) => {
   }
 };
 
-// Funzione per il download del file
+// Funzione per il download del file che prende il parametro filename per capire quale file scaricare per poi fare una fetch per ottenere i dati da scaricare per poi metterli nell'oggetto file e viene generato la URL per scaricare il file
 const downloadFile = async (fileName) => {
+  console.log(fileName);
+
   let body = { mega: fileName, name: "test.txt" };
 
   try {
@@ -262,60 +363,10 @@ const downloadFile = async (fileName) => {
       response.headers.get("Content-Disposition").split("filename=")[1],
     );
     const url = window.URL.createObjectURL(file);
+    console.log(url);
     return url;
   } catch (error) {
     console.error("Errore durante il download del file:", error);
     throw error;
   }
 };
-
-const renderImageAsync = async (fileName) => {
-  try {
-    const src = await downloadFile(fileName);
-    render(src);
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
-};
-
-let onlines = [];
-register.addEventListener("submit", (e) => {
-  displayMessages();
-  setInterval(() => {
-    user_get().then((json) => {
-      let flag = 0;
-      for (let i = 0; i < json.message.length; i++) {
-        if (onlines.includes(json.message[i].userid)) {
-          flag += 1;
-        }
-      }
-      console.log(flag, onlines.length, json.message.length);
-      if (onlines.length === 0 && flag == 0) {
-        json.message.push({
-          roomid: room,
-          userid: "admin",
-          sid: socket.id,
-        });
-        onlines.push("admin");
-        user_up(room, "admin", socket.id).then((json1) => {});
-      }
-      console.log(json.message);
-      console.log(onlines);
-      let template = `<li>%room:-->%username</li>`;
-      let html = "";
-      html += `<ul>`;
-      for (let i = 0; i < json.message.length; i++) {
-        html += template
-          .replace("%room", json.message[i].roomid)
-          .replace("%username", "admin");
-      }
-      html += `</ul>`;
-      if (html === `<ul></ul>`) {
-      } else {
-        users.innerHTML = html;
-        console.log(html);
-      }
-    });
-  }, 3000);
-});

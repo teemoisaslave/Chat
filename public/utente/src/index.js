@@ -12,7 +12,7 @@ import {
 const socket = io();
 let onlines = [];
 let flag = 0;
-const imageElement = document.getElementById("image");
+let imageElement = "";
 const invia = document.getElementById("invia");
 const immagine = document.getElementById("img");
 const form = document.getElementById("form");
@@ -25,6 +25,7 @@ const myModal = new bootstrap.Modal("#modalAccedi");
 const roo = document.getElementById("rooms");
 const users = document.getElementById("users");
 let rooms = [];
+let leng;
 myModal.show();
 let banlist = [];
 let room = "";
@@ -47,6 +48,7 @@ let messageData = [];
 let onlines3 = [];
 onlines = [];
 register.addEventListener("submit", (e) => {
+  displayMessages([]);
   rooms2.push[roomInput.value];
   ban_get().then((json) => {
     for (let i = 0; i < json.message.length; i++) {
@@ -59,7 +61,11 @@ register.addEventListener("submit", (e) => {
   user_get().then((json) => {
     let prova = [];
     for (let v = 0; v < json.message.length; v++) {
-      prova.push(json.message[v].userid, json.message[v].roomid);
+      prova.push(
+        json.message[v].userid,
+        json.message[v].roomid,
+        json.message[v].sid,
+      );
     }
     if (banlist.includes(usernameInput.value)) {
       window.alert("Sei stato bannato");
@@ -67,7 +73,8 @@ register.addEventListener("submit", (e) => {
     }
     if (
       prova.includes(usernameInput.value) &&
-      prova.includes(roomInput.value)
+      prova.includes(roomInput.value) &&
+      prova.includes(socket.id) === false
     ) {
       alert("username già esistente");
       window.location = "../pagina_principale.html";
@@ -158,31 +165,47 @@ register.addEventListener("submit", (e) => {
       }
     });
   }
-  displayMessages();
   setInterval(() => {
+    msng_get(room).then((json) => {
+      if (messageData.length > json.message.length) {
+        leng = 0;
+
+        messageData = [];
+      } else {
+        leng = messageData.length;
+      }
+      if (leng === 0) {
+        for (let i = 0; i < json.message.length; i++) {
+          messageData.push({
+            username: json.message[i].userid,
+            message: json.message[i].message,
+            timestamp: json.message[i].timestamp,
+            type: json.message[i].type,
+          });
+        }
+        displayMessages(messageData);
+      } else if (messageData.length < json.message.length) {
+        for (let i = 0; i < json.message.length - leng; i++) {
+          let index = json.message.length - i - 1;
+          console.log(index, "indice");
+          console.log(messageData);
+          console.log(json.message[index]);
+          messageData.push({
+            username: json.message[index].userid,
+            message: json.message[index].message,
+            timestamp: json.message[index].timestamp,
+            type: json.message[index].type,
+          });
+          messageData[index];
+        }
+        displayMessages(messageData);
+      } else if (messageData.length >= json.message.length) {
+      }
+    });
     if (banlist.includes(usernameInput.value)) {
       window.alert("Sei stato bannato");
       window.location = "../pagina_principale.html";
     }
-    messageData = [];
-    msng_get(room).then((json) => {
-      for (let i = 0; i < json.message.length; i++) {
-        messageData.push({
-          username: json.message[i].userid,
-          message: json.message[i].message,
-          timestamp: json.message[i].timestamp,
-        });
-      } // Aggiungi il messaggio all'array
-      messages.innerHTML = messageData
-        .map(({ username, message, timestamp }) => {
-          const align = username === usernameInput.value ? "me" : "others";
-          return `<li class="${align}">[${timestamp}] ${username}: ${message}</li>`;
-        })
-        .join("");
-
-      // Scorri fino all'ultimo messaggio
-      window.scrollTo(0, document.body.scrollHeight);
-    });
     user_get().then((json) => {
       if (onlines.length === 1 && flag == 0) {
         json.message.push({
@@ -198,7 +221,6 @@ register.addEventListener("submit", (e) => {
           flag += 1;
         }
       }
-
       let template = `<li>%room:-->%username</li>`;
       let html = "";
       html += `<ul>`;
@@ -213,7 +235,7 @@ register.addEventListener("submit", (e) => {
         users.innerHTML = html;
       }
     });
-  }, 3000);
+  }, 500);
   flag69 += 1;
 });
 
@@ -232,24 +254,54 @@ form.addEventListener("submit", (e) => {
       username,
       message: input.value,
       timestamp,
+      type: "m",
     });
-    msng_up(input.value, room, username, timestamp).then((json) => {});
+    msng_up(input.value, room, username, timestamp, "m").then((json) => {});
     input.value = "";
   }
 });
 
-socket.on("chat message", function (message) {
-  console.log(message);
-  messageData.push(message); // Aggiungi il messaggio all'array
-  displayMessages(); // Visualizza i messaggi
-});
 socket.on("disconnect", () => {});
 
-function displayMessages() {
-  messages.innerHTML = messageData
-    .map(({ username, message, timestamp }) => {
-      const align = username === usernameInput.value ? "me" : "others";
-      return `<li class="${align}">[${timestamp}] ${username}: ${message}</li>`;
+invia.onclick = () => {
+  uploadFile(immagine).then((data) => {
+    downloadFile(data.link).then((src) => {
+      render(src, data.link);
+    });
+  });
+};
+//questa funzione prende la src per caricare l'immagine nell'html quando viene richiamata dalla funzione renderImageAsync
+const render = (src, link) => {
+  const align = username === usernameInput.value ? "me" : "others";
+  const timestamp = new Date().toLocaleString("it-IT", {
+    year: "2-digit",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  imageElement = `<li class="${align}">[${timestamp}] ${username}: <img id="image" src="${src}" /></li>`;
+  messages.innerHTML += imageElement;
+  msng_up(link, room, username, timestamp, "i").then((json) => {});
+};
+const render1 = (src, link, username, timestamp) => {
+  const align = username === usernameInput.value ? "me" : "others";
+  imageElement = `<li class="${align}">[${timestamp}] ${username}: <img id="image" src="${src}" /></li>`;
+  messages.innerHTML += imageElement;
+};
+
+async function displayMessages(mensages) {
+  console.log(mensages);
+  messages.innerHTML = mensages
+    .map(({ username, message, timestamp, type }) => {
+      if (type === "m") {
+        const align = username === usernameInput.value ? "me" : "others";
+        return `<li class="${align}">[${timestamp}] ${username}: ${message}</li>`;
+      } else if (type === "i") {
+        downloadFile(message).then((src) => {
+          render1(src, message, username, timestamp);
+        });
+      }
     })
     .join("");
 
@@ -258,19 +310,6 @@ function displayMessages() {
 }
 //Questa è la funzione che, non appena viene cliccato il tasto 'invia', gestisce gli eventi per l'upload del file.
 //github.com/FapaKslapa/megajs_Example/blob/main/server/mega.js
-invia.onclick = () => {
-  uploadFile(immagine).then((data) => {
-    console.log("data ", data);
-    downloadFile(data.link).then((src) => {
-      console.log(src);
-      render(src);
-    });
-  });
-};
-//questa funzione prende la src per caricare l'immagine nell'html quando viene richiamata dalla funzione renderImageAsync
-const render = (src) => {
-  imageElement.src = src;
-};
 
 // Funzione per il caricamento del file che prende in input il file selezionato dall'utente e anche qui viene messo tutto all'interno di un'oggetto file per poi fare una fetch per caricare il file, se andata bene i dati all'interno dell'oggeto vengono trasformati in un file json per poi fare la render e restituire i dati del file
 const uploadFile = async (img) => {

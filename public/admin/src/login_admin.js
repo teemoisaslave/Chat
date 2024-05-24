@@ -1,4 +1,4 @@
-import { Login_u} from "../../connection.js";
+import { Login } from "../../connection.js";
 
 const username = document.getElementById("username");
 const password = document.getElementById("password");
@@ -20,7 +20,7 @@ visibility_off
   }
 };
 
-login_u.onclick = () => {
+login.onclick = () => {
   console.log(username.value, password.value);
   Login(username.value, password.value).then((response) => {
     console.log(response);
